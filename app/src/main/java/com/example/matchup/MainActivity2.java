@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -28,6 +30,8 @@ public class MainActivity2 extends AppCompatActivity {
     private int matchedPairs = 0;
     private TextView congratsText;
     private Handler handler = new Handler();
+    private Animation flipInAnimation;
+    private Animation flipOutAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,10 @@ public class MainActivity2 extends AppCompatActivity {
         Button backButton = findViewById(R.id.backButton);
         Button restartButton = findViewById(R.id.restartButton);
 
+        // set up the flip animation
+
+        flipInAnimation= AnimationUtils.loadAnimation(this, R.anim.flip_in);
+        flipOutAnimation = AnimationUtils.loadAnimation(this, R.anim.flip_out);
 
 //        imageButtons[0] = findViewById(R.id.imageButton1);
 //        imageButtons[1] = findViewById(R.id.imageButton2);
@@ -61,6 +69,7 @@ public class MainActivity2 extends AppCompatActivity {
         Collections.shuffle(images);
 
         // set up the game board
+        setupGameBoard();
 
 //        for (int i = 0; i < 12; i++) {
 //            imageButtons[i].setBackgroundResource(cardBack);
@@ -138,14 +147,29 @@ public class MainActivity2 extends AppCompatActivity {
         }
     }
 
-    private void handleCardClick(int index) {
-        imageButtons[index].setImageResource(images.get(index));
+    private void handleCardClick(final int index) {
+        imageButtons[index].startAnimation(flipInAnimation);
+        flipInAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                imageButtons[index].setImageResource(images.get(index));
+                imageButtons[index].startAnimation(flipOutAnimation);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+
         if (clicked == 0) {
             lastClicked = index;
         } else {
             currentClicked = index;
         }
         clicked++;
+
 
         if (clicked == 2) {
             turnOver = true;
@@ -157,7 +181,6 @@ public class MainActivity2 extends AppCompatActivity {
             }, 1000);
         }
     }
-
 
     private void checkMatch() {
         if (imageButtons[currentClicked].getDrawable().getConstantState().equals(imageButtons[lastClicked].getDrawable().getConstantState())) {
@@ -180,6 +203,7 @@ public class MainActivity2 extends AppCompatActivity {
         turnOver = false;
         lastClicked = -1;
         currentClicked = -1;
+        matchedPairs = 0;
         Collections.shuffle(images);
         for (int i = 0; i < 12; i++) {
             imageButtons[i].setImageResource(cardBack);
@@ -190,7 +214,14 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     private void flipCardsBack(int lastClicked, int currentClicked) {
-        imageButtons[lastClicked].setImageResource(cardBack);
-        imageButtons[currentClicked].setImageResource(cardBack);
+        imageButtons[lastClicked].startAnimation(flipInAnimation);
+        imageButtons[currentClicked].startAnimation(flipInAnimation);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                imageButtons[lastClicked].setImageResource(cardBack);
+                imageButtons[currentClicked].setImageResource(cardBack);
+            }
+        }, 500);
     }
 }
