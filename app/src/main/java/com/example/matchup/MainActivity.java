@@ -28,9 +28,13 @@ public class MainActivity extends AppCompatActivity {
         quitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
-                System.exit(0);
+                exitApp();
             }
         });
+    }
+
+    private void exitApp() {
+        finishAffinity();
+        System.exit(0);
     }
 }
